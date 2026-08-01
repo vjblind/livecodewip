@@ -1,0 +1,54 @@
+
+//==== CONSTANTS — edit once, both voices follow =====
+const NAME  = "loops:77!16"        // !4raw name, no wt_ needed
+const NOTES = "<c1 ~ c1 eb1 ~ g1 ~ c1 ~>*8"         // ~ = rest
+$:s("jazz!4")
+$:stack(
+
+  s("jazz").gain(.1),
+  // ===== VOICE A — core =====
+  note(NOTES).s(NAME)//.fast(.3)
+  //  .loop(1).unit("c")
+    .begin(slider(0.181, 0, 1, 0.001))     // wave position (like Serum's WT pos)
+   .end(slider(1, 0, 1, 0.001))    // window width — narrow = static frame
+    .speed(slider(1.934, 0.5, 2, 0.001))
+    .clip(slider(2, 0.1, 2, 0.01))
+   .attack(slider(0, 0, 1))
+   .decay(slider(0, 0, 1))
+ .sustain(slider(0.077, 0, 1))
+   .release(slider(1.722, 0, 2))
+   .pan(0.4).gain(0.70)
+  ,
+
+  // ===== VOICE B — width/unison =====
+  note(NOTES).s(NAME)
+    .loop(2).unit("c") 
+    .begin(slider(0.856, 0, 1, 0.001))
+    .end(slider(0.198, 0, 1, 0.001))
+    .speed(slider(0.98, 0.98, 1.02, 0.001))
+    .clip(slider(0.44, 0.1, 2, 0.01))
+    .attack(slider(0, 0, 1))
+    .decay(slider(0, 0, 1))
+    .sustain(slider(0.064, 0,  1))
+    .release(slider(0.328, 0, 2))
+    .pan(0.6).gain(.5)
+)
+ //===== FILTER + ENVELOPE (Serum's filter env 
+  .lpf(slider(4170, 100, 8000, 1))
+.resonance(slider(0, 0, 40, 1))
+//.lpenv(slider, 1.08(0, 12))
+.lpattack(slider(0.727, 0, 1))
+.lpdecay(slider(0.848, 0, 1))
+.lpsustain(slider(1, 0, 1))
+.lprelease(slider(0, 0, 2))
+// ===== DRIVE =====
+.distort(slider(0.948, 0, 1))
+// ===== FX =====
+.chorus(slider(1.988, 0, 2))
+.delay(slider(0.79, 0, 1))
+.room(slider(1, 0, 1))
+.compressor("-20:3:1:0.005:0.2")
+// ===== MASTER =====
+.gain(slider(0.1932, 0, 1.2))
+._scope()
+
