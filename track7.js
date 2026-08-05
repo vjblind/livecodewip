@@ -31,3 +31,67 @@ const kick = stack(
 const jazzHit = s("jazz ~ ~  jazz ~ ~ ~ ~ ").delay(.2)
 const hats16 = s("hh!16").gain(.53)
 const hats8 = s("hh:8!8").gain(.516).degrade()
+const perc = s("co:<0 2 1 1 1>*8").degrade().rib(12,2).lpf(733)
+//const altPerc = s("jungle:< 3 6 3 2>*8").ply("1 1 3 2").delay("<0!16 5>")
+
+const breaks = s("breaks125:[0!16 1!8]").fit().hpf(700).lpf(1800)
+  //.almostNever(x=>x.scrub(irand(16).div(16).seg(2)))
+  .mask("<1 0!8 0 1!4 0 1 8!4 0!6>").delay(.2)
+  //.room(5)
+  .lpf(1233)
+  //.rib("<0 12 0 7 1 2 0.3!4 7 9 01  2 3 8>",2)
+  .gain(.72)
+  //.loopAt(8).chop(16)
+  //.mask("<0 0 1 1>/8")
+
+// bass
+const jungBass = s("jungbass:< 2 8 8 8 10 2!16 >/4").mask("<1>").delay(.2)
+  //.room(5)
+const industrialBass = s("industrial:< 2 8 8 8 10 2!16 >/2").mask("<1>").speed(.5).lpf(1233).delay(.2).room(.5)
+
+// earlier draft: s("wobble").gain(1).speed(1).scrub(irand(16).div(16).seg(2))
+const wobbleBass = note("c3").s("wobble!1").delay(2).diode(1.52).speed(.62).room(3)
+  .lpf(39)
+
+// texture / fx
+const feelFx = s("feelfx:< 2 8 8 8 10>").mask("<1 0!8>").delay(2).room(5)
+
+const fxRain = note("<< c e f f > c4 f3>*<8!8 16>").s("gm_fx_rain:<0!8 2!4>")
+  .mask("<1!32 0!16>").lpf("733").postgain(2).delay(.5)
+
+const fxCrystal = note("<< c e f f > c4 f3>*<8!8 16>/8").s("gm_fx_crystal:<0!8 4!4>")
+  .mask("<1!16 0!32>")
+
+const padBowed = note("<< c e f f > c4 f3>/<2!8 8>").s("gm_pad_bowed:<4!8 5!4>").att(.3)
+  //.mask("<1!32 0!16>")
+  .lpf("733").postgain(2).delay(.5)
+
+// vocals
+const vocalShort = s("fm").mask("<1 0!12>").gain(vocalGain).lpf(vocalTone).room(2)
+const vocalLong = s("diphone2:2").mask("<1 0!50>").gain(vocalGain).lpf(vocalTone).room(3)
+
+// ---- arrange live: reorder/group this list freely, nothing above needs to move ----
+_$: introPad
+_$: introSine
+_$: introSax
+_$: perc
+$: vocalShort.gain(.02)
+_$: kick
+$: feelFx.lpf(833)
+_$: hats16
+$: breaks
+$: fxRain
+$: jazzHit
+$: vocalLong
+$: fxCrystal
+$: padBowed.lpf(300)
+$: hats8
+
+/*
+
+
+
+
+_$: jungBass
+$: industrialBass
+$: wobbleBass
