@@ -1,0 +1,12 @@
+
+ $://note("c e f a c c  ").
+   s("crypticsoundwaves_mini_sp:3").slice(32, cat ("0 2 5 7 ","3 4 6 8 ")).delay(.05).legato(.51).lpf(366).slow(8)//.struct("[x _ _ _ _]/32")
+
+_$:s("jazz!2")
+$:s("hh!4").lpf(650)
+_$:note("c e f a c c  ").s("crypticsoundwaves_mini_sp:8").slice(8, "0 2 5 7").delay(.5).legato(.51).lpf(666).slow(4)
+
+_$: //note("c e f a c c")
+  s("emergence_mini_sp:1").slice(32, "0 2 5 7").ply(2).att(.2).delay(.25)//.legato(.51)
+.lpf(666)
+.slow(2)
