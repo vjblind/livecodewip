@@ -1,0 +1,26 @@
+$:chord("<Cm6!2 Em7!4 ~!4 >,<Am7 D7 ~  Gm7 Cm69>") // 1. Input Chords
+  .voicing()
+  .arp("0 1  4 2 3 4 2 2 2 ").rev()//.ply("<1!2 2>")
+         // 2. Style / Pattern
+  .fast(" .9552")                    // 3. Rate
+  .add("<0 12 24>")           // 4. 
+//Steps & Distance
+  .legato(2.5)                // 5. Gate
+  //.note()                     // 👈 YOU NEED THIS LINE HERE!
+  .s("sine")
+  //.swing(.2)
+  .late(1.4)//.euclid("<6!2 8 5  >",8)
+
+
+ $:chord("<Cm6!2 Em7!4 ~!4 >,<Am7 D7 ~  Gm7 Cm69>") // 1. Input Chords
+  .voicing()
+  .arp("0 1  4 2 3 4 2 2 2 ")//.rev()//.ply("<1!2 2>")
+         // 2. Style / Pattern
+  .fast(" .9552")                    // 3. Rate
+  .add("<0 12 24>")           // 4. 
+//Steps & Distance
+  .legato(2.5)                // 5. Gate
+  //.note()                     // 👈 YOU NEED THIS LINE HERE!
+  .s("sine")
+  //.swing(.2)
+  .late(1.4)//.euclid("<6!2 8 5  >",8)
