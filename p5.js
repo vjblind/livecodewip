@@ -61,4 +61,4 @@ window._p5text = new p5(sketchText);
 
 src(s0).blend(src(s1)).out(o0)
 
-s('bd(3,8) ~ sn ~').play();
+s('bd ~ sn ~');
