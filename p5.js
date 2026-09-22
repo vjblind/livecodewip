@@ -1,3 +1,5 @@
+await initHydra()
+
 function loadScript(src) {
   return new Promise((resolve, reject) => {
     if (document.querySelector('script[src="' + src + '"]')) { resolve(); return; }
@@ -11,17 +13,18 @@ function loadScript(src) {
 
 await loadScript('https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js');
 
-if (window._p5sketch) { window._p5sketch.remove(); }
+if (window._p5flash) { window._p5flash.remove(); }
+if (window._p5text) { window._p5text.remove(); }
 
-const sketch = (p) => {
+// Canvas 1 : le flash
+const sketchFlash = (p) => {
   let flash = 0;
   let dernierBattement = 0;
   const tempo = 500;
 
   p.setup = () => {
-    const canvas = p.createCanvas(800, 600);
-    canvas.style('display', 'block');
-    canvas.style('margin', '0 auto');
+    p.createCanvas(800, 600);
+    s0.init({ src: p.canvas });
   };
 
   p.draw = () => {
@@ -37,4 +40,25 @@ const sketch = (p) => {
   };
 };
 
-window._p5sketch = new p5(sketch);
+// Canvas 2 : juste le texte "hello"
+const sketchText = (p) => {
+  p.setup = () => {
+    p.createCanvas(800, 600);
+    s1.init({ src: p.canvas });
+  };
+
+  p.draw = () => {
+    p.background(0);
+    p.fill(255);
+    p.textAlign(p.CENTER, p.CENTER);
+    p.textSize(80);
+    p.text('hello', p.width / 2, p.height / 2);
+  };
+};
+
+window._p5flash = new p5(sketchFlash);
+window._p5text = new p5(sketchText);
+
+src(s0).blend(src(s1)).out(o0)
+
+s('bd(3,8) ~ sn ~').play();
