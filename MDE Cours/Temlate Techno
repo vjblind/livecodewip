@@ -1,0 +1,228 @@
+```js
+setcpm(132/4)
+
+// ─────────────────────────────────────────────
+// STRUDEL TECHNO — TEMPLATE VIDE DE STRUCTURE
+// Remplace les noms de dossiers et les index :0
+// par les vrais noms de tes samples importés.
+// Ctrl + Entrée = jouer / mettre à jour
+// Ctrl + . = arrêter
+// _$: = piste muette — enlève _ pour la rallumer
+// ─────────────────────────────────────────────
+
+
+// =================================================
+// 00 — INTRO · 32 cycles
+// Atmosphère, drone, texture, percussion très légère
+// =================================================
+
+//$: s("Atmo Loops:0")
+//  .slow(4)
+//  .lpf(1800)
+//  .room(0.75)
+//  .gain(0.14)
+
+//$: s("Drone Loops:0")
+//  .slow(4)
+//  .lpf(1200)
+//  .room(0.65)
+//  .gain(0.12)
+
+//$: s("Texture and Noise Loops:0")
+//  .slow(2)
+//  .hpf(900)
+//  .room(0.5)
+//  .gain(0.08)
+
+//$: s("~ Percussion Loops:0 ~ ~")
+//  .gain(0.18)
+
+
+// =================================================
+// 01 — GROOVE A · 32 cycles
+// Kick + clap + hats + basse
+// =================================================
+
+//$: s("Kick Loops:0*4")
+//  .gain(0.86)
+
+//$: s("~ Clap Loops:0 ~ Clap Loops:0")
+//  .gain(0.52)
+
+//$: s("[HiHat Loops:0 HiHat Loops:0] HiHat Loops:0 [HiHat Loops:0 HiHat Loops:0 HiHat Loops:0]")
+//  .gain(0.24)
+
+//$: s("~ Percussion Loops:0 ~ [Percussion Loops:1 Percussion Loops:0]")
+//  .gain(0.24)
+
+//$: s("Bass Loops:0")
+//  .lpf(850)
+//  .gain(0.34)
+
+
+// =================================================
+// 02 — GROOVE B · 32 cycles
+// Plus de mouvement : top loop, accords ou pad
+// =================================================
+
+//$: s("Top Loops:0")
+//  .hpf(350)
+//  .gain(0.16)
+
+//$: s("Groove Loops:0")
+//  .gain(0.18)
+
+//$: s("Chord Loops:0")
+//  .lpf(2400)
+//  .room(0.35)
+//  .gain(0.18)
+
+//$: s("Pad Loops:0")
+//  .slow(2)
+//  .lpf(1800)
+//  .room(0.7)
+//  .gain(0.13)
+
+
+// =================================================
+// 03 — BUILD / MONTÉE · 16 cycles
+// Ouvre le filtre de basse + densifie les hats + FX rare
+// =================================================
+
+//$: s("[HiHat Loops:0 HiHat Loops:0] HiHat Loops:0 [HiHat Loops:0 HiHat Loops:0 HiHat Loops:0]")
+//  .fast(2)
+//  .gain(0.32)
+
+//$: s("Bass Loops:0")
+//  .lpf(sine.range(300, 2600).slow(4))
+//  .resonance(10)
+//  .gain(0.4)
+
+//$: s("<~ ~ ~ Fx Loops:0>")
+//  .slow(4)
+//  .room(0.5)
+//  .gain(0.3)
+
+//$: s("Snare Loops:0")
+//  .slow(2)
+//  .gain(0.15)
+
+
+// =================================================
+// 04 — DROP 1 · 32 cycles
+// Énergie complète
+// =================================================
+
+//$: s("Kick Loops:0*4")
+//  .gain(0.9)
+
+//$: s("~ Clap Loops:0 ~ Clap Loops:0")
+//  .gain(0.58)
+
+//$: s("HiHat Loops:1*16")
+//  .gain(0.28)
+
+//$: s("Ride Loops:0*4")
+//  .gain(0.14)
+
+//$: s("Percussion Loops:1")
+//  .gain(0.25)
+
+//$: s("Bass Loops:0")
+//  .lpf(1600)
+//  .gain(0.4)
+
+//$: s("Top Loops:0")
+//  .hpf(400)
+//  .gain(0.18)
+
+
+// =================================================
+// 05 — BREAK / PAUSE · 16 cycles
+// Retire le kick. Garde l’atmosphère, les accords et les FX.
+// =================================================
+
+//_$: s("Kick Loops:0*4").gain(0.9)
+
+//_$: s("~ Clap Loops:0 ~ Clap Loops:0").gain(0.58)
+
+//_$: s("HiHat Loops:1*16").gain(0.28)
+
+//$: s("Pad Loops:0")
+//  .slow(2)
+//  .room(0.8)
+//  .lpf(1800)
+//  .gain(0.2)
+
+//$: s("Drone Loops:0")
+//  .slow(4)
+//  .lpf(1400)
+//  .room(0.7)
+//  .gain(0.16)
+
+//$: s("<~ ~ Fx Loops:1 ~>")
+//  .slow(2)
+//  .gain(0.28)
+
+
+// =================================================
+// 06 — DROP 2 · 32 cycles
+// Retour avec d’autres samples et une variation
+// =================================================
+
+//$: s("Kick Loops:1*4")
+//  .gain(0.9)
+
+//$: s("~ Clap Loops:1 ~ Clap Loops:1")
+//  .gain(0.56)
+
+//$: s("[HiHat Loops:1 HiHat Loops:1] HiHat Loops:1 [HiHat Loops:1 HiHat Loops:1 HiHat Loops:1]")
+//  .every(4, rev)
+//  .gain(0.3)
+
+//$: s("Percussion Loops:2")
+//  .every(8, rev)
+//  .gain(0.28)
+
+//$: s("Bass Loops:1")
+//  .lpf(sine.range(700, 2200).slow(8))
+//  .gain(0.42)
+
+//$: s("Synth Loops:0")
+//  .lpf(2800)
+//  .room(0.35)
+//  .gain(0.16)
+
+
+// =================================================
+// 07 — OUTRO / FIN · 16 cycles
+// Mets les couches en silence une par une.
+// =================================================
+
+//_$: s("Ride Loops:0*4").gain(0.14)
+
+//_$: s("HiHat Loops:1*16").gain(0.28)
+
+//_$: s("~ Clap Loops:1 ~ Clap Loops:1").gain(0.56)
+
+//_$: s("Bass Loops:1").gain(0.42)
+
+//_$: s("Kick Loops:1*4").gain(0.9)
+
+
+// =================================================
+// GESTES RAPIDES DE LIVE CODING
+// =================================================
+
+// Hats plus rapides pour une montée :
+//$: s("HiHat Loops:0*8").fast(2).gain(0.3)
+
+// Inverser une percussion tous les quatre cycles :
+//$: s("Percussion Loops:0").every(4, rev).gain(0.25)
+
+// Rendre l’atmosphère plus sombre :
+//$: s("Atmo Loops:0").lpf(1000).room(0.8).gain(0.15)
+
+// Impact rare : une fois tous les quatre cycles :
+//$: s("<~ ~ ~ Fx Loops:0>").slow(4).gain(0.35)
+```
