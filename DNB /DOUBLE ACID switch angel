@@ -1,0 +1,145 @@
+// ============================================================
+// DNB / DOUBLE ACID
+// 8 gains — crossfade acid A/B — montée — coupure — drop
+// ============================================================
+
+// SETUP
+setGainCurve(x => x)
+samples('github:switchangel/breaks')
+samples('github:switchangel/pad')
+samples('github:tidalcycles/uzu-drumkit')
+setCps(170/60/4)
+
+
+// VOLUMES — réglages conservés
+const G_PAD   = slider(0.627, 0, 1)
+const G_BASS  = slider(.94, 0, 1)
+const G_BREAK = slider(.45, 0, 1)
+const G_HATS  = slider(.08, 0, 1)
+const G_ACID  = slider(0.069, 0, 1)
+
+const G_DRUMS = slider(.80, 0, 1)
+const G_SYNTH = slider(.70, 0, 1)
+const MASTER  = slider(.65, 0, 1)
+
+const synthGain = g => g.mul(G_SYNTH).mul(MASTER)
+const drumGain  = g => g.mul(G_DRUMS).mul(MASTER)
+
+
+// FILTRES
+const DRUM = slider(12000, 300, 18000)
+const PAD  = slider(1800, 150, 6000)
+const BASS = slider(180, 60, 1200)
+
+
+// ACID — CONTRÔLES COMMUNS
+const MIX  = slider(1, 0, 1)        // 0 = A ; 1 = B
+const ENV  = slider(3, 0, 8)        // ouverture par note
+const RESO = slider(12, 1, 15)      // résonance
+const DEC  = slider(.15, .03, .4)   // durée du balayage
+
+
+// 1. NAPPE
+const pad = s("swpad")
+  .scrub("0@5 0@3".add("<.3@3 .7>"))
+  .att(.3).lpf(PAD)
+  .gain(synthGain(G_PAD))
+
+
+// 2. BASSE SUPERSAW
+const bass = note("<c2 g#1 f1@2>/2")
+  .struct("1@5 1@3")
+  .s("supersaw")
+  .lpf(BASS).lpenv(4).lpa(2)
+  .distort("2:.5")
+  .gain(synthGain(G_BASS))
+
+
+// 3. BREAK — ta sélection de sample conservée
+const breaks = s("breaks:4/2").fit()
+  .scrub(irand(16).div(16).seg(8).rib(0,8))
+  .lpf(DRUM).orbit(2)
+  .gain(drumGain(G_BREAK))
+
+
+// 4. HATS
+const hats = s("white!8")
+  .decay(.08).lpf(DRUM)
+  .gain(drumGain(G_HATS))
+
+
+// 5A. ACID A — ta mélodie, nerveuse et très contrastée
+const acidA = note(`<
+ [c ~ c2 c2 ~ c g c3 c2 ~ g f f ~ c c]
+ [c ~ b2 g2 eb eb cb c3 c2 ~ g f f ~ c3 c3]!2
+ [c ~ b2 g2 eb eb cb c3 c2 ~ g f f c1 c6 c6]!4
+>`).slow(2)
+  .s("sawtooth")
+  .attack(.005).decay(.15).sustain(.1).release(.06)
+  .lpf(200).lpenv(ENV).lpq(RESO)
+  .lpa(.005).lps(0).lpd(DEC)
+  .distort("2.2:.3")
+  .delay(.5).delayfeedback(.25)
+  .gain(synthGain(G_ACID).mul(MIX.mul(-1).add(1)))
+
+
+// 5B. ACID B — plus grave, espacée, sombre
+// Autre mélodie + onde carrée + enveloppe moins agressive.
+const acidB = note(`<
+ [c2@2 ~ g1 c2 ~ eb2@2]
+ [ab1@2 ~ eb2 g2@2 ~ c2]
+ [f1 ~ c2@2 eb2 ~ f2 c2]
+ [g1@2 bb1 ~ c2@3 ~]
+>`).slow(2)
+  .s("square")
+  .attack(.005).decay(.22).sustain(.08).release(.1)
+  .lpf(160).lpenv(ENV.mul(.7)).lpq(RESO.mul(.75))
+  .lpa(.005).lps(0).lpd(DEC.mul(1.5))
+  .distort("1.3:.25")
+  .delay(.25).delaytime(.375).delayfeedback(.25)
+  .gain(synthGain(G_ACID).mul(MIX))
+
+// Une seule variable à utiliser dans toutes les scènes
+const acid = stack(acidA, acidB)
+
+
+// 6. HATS DE MONTÉE
+// Densité : 8 → 16 → 24 → 32 événements par mesure.
+// Intensité croissante, avec pulsation sinus jusqu'à ×2.
+// G_HATS, G_DRUMS et MASTER restent actifs.
+const riseHats = s("hh:1")
+  .struct("<[1!8] [1!16] [1!24] [1!32]>")
+  .decay(.05).hpf(5000).lpf(DRUM)
+  .gain(
+    drumGain(G_HATS)
+      .mul("<.4 .8 1.3 2>")
+      .mul(sine.fast(2).range(.4, 1))
+  )
+
+
+// SCÈNES
+const intro  = stack(pad, hats)
+const groove = stack(pad, bass, breaks)
+const build  = stack(pad, breaks, hats, acid)
+
+// Retrait de la basse grave : le drop la fera revenir.
+// Le break perd progressivement son grave.
+const rise = stack(
+  pad,
+  breaks.hpf("<150 300 600 1200>"),
+  riseHats.gain(0.52),
+  acid
+)
+
+const drop = stack(pad, bass, breaks, hats.fast(2), acid)
+
+const outro = stack(pad, breaks.hpf(700))
+  .postgain("<1 .85 .7 .55 .4 .28 .15 .05>")
+
+
+// ARRANGEMENT — démonstration build → montée → coupure → drop
+$: arrange(
+  [8,intro], [8,groove],
+  [8,build], [5,rise], [.5,silence],
+  [16,drop], [0,outro]
+)
