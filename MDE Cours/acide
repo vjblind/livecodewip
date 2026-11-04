@@ -1,0 +1,30 @@
+
+// @bychapthenight 
+
+
+setGainCurve(x => x)
+setCps(135/60/4) // 135 BPM
+// BATTERIE
+const drums = stack(
+  s("bd:3!4").gain(.6).dec(.5).dist(.5),
+  s("<~ ~ oh:1 ~>*16").gain(.25),
+  s("<~ cp>*4").gain(.4).room(.1),
+  s("<~ hh:1>*16").gain(.15),
+  s("lt").beat("2,3,6,7,15",16).gain(.3),
+  s("mt:1").beat("9,10,11,12",16).gain(.25)
+).bank("TR909")
+
+// ACID — notes aléatoires + un slider d'enveloppe
+const acid = n(irand(4).sub(7).seg(16))
+  .scale("a:minor").s("sawtooth")
+  .cutoff(200).lpenv(slider(1.38,0,15))
+  .gain(.53).punchcard()
+
+// SCÈNES
+const intro = drums.hpf(1200)
+const build = stack(drums.hpf(400), acid)
+const drop  = stack(drums, acid)
+const outro = drums.hpf(1500)
+
+// ARRANGEMENT — modifie uniquement les durées
+$: arrange([0,intro],[8,build],[.25,silence],[16,drop],[0,outro])
