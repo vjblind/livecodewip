@@ -1,0 +1,27 @@
+setCps(140/60/4)
+setGainCurve(x => x)
+
+// KICK + DUCKING
+const kick = s("sbd!4").gain(.6)
+  .duck("2:3:4").duckattack(.2).duckdepth(.8)
+
+// ACID — moteur de ta capture
+const acid = n(irand(10).sub(7).seg(16))
+  .scale("c:minor").rib(46,1)
+  .s("sawtooth")
+  .lpf(slider(200, 80, 2000))      // FILTRE
+  .lpenv(slider(3.04, 0, 8))       // OUVERTURE PAR NOTE
+  .lpq(slider(12, 1, 15))          // RÉSONANCE
+  .lpd(slider(.15, .03, .5))       // DURÉE DU BALAYAGE
+  .distort(slider(.5, 0, 3))       // DISTORSION
+  .gain(slider(.25, 0, .6))        // VOLUME ACID
+  .orbit(2)
+
+// SCÈNES SIMPLES
+const intro = kick
+const build = stack(kick.hpf(200), acid)
+const drop  = stack(kick, acid)
+const outro = kick.hpf(600)
+
+// CHANGE LES DURÉES ICI
+$: arrange([0,intro],[8,build],[0,silence],[0,drop],[0,outro])
