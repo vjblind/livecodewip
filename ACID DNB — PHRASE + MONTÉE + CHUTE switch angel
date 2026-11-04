@@ -1,0 +1,104 @@
+// =====================================================
+// ACID DNB — PHRASE + MONTÉE + CHUTE
+// À ajouter sous ton breakbeat à 170 BPM.
+//
+// 32 mesures :
+// 8 exposition → 8 montée → 8 sommet → 4 chute → 4 respiration
+// =====================================================
+
+
+// 1. PHRASES ÉCRITES
+// Chaque ligne contient 16 pas et dure deux mesures.
+// Les silences font respirer la basse entre les frappes.
+
+const acidA = note(`
+  c2 ~ c2 g2 ~ bb2 g2 eb2
+  c2 ~ eb2 f2 g2 ~ eb2 bb1
+`).slow(2)
+
+
+// Réponse ascendante : on quitte progressivement le grave.
+const acidUp = note(`
+  c2 ~ eb2 g2 bb2 ~ c3 bb2
+  g2 bb2 c3 d3 eb3 ~ d3 g2
+`).slow(2)
+
+
+// Réponse descendante : retour vers la fondamentale.
+const acidDown = note(`
+  c3 bb2 g2 ~ eb2 g2 f2 eb2
+  d2 ~ c2 bb1 g1 ~ bb1 c2
+`).slow(2)
+
+
+// Respiration : notes espacées, durées inégales.
+const acidAir = note(`
+  c2@3 ~ g1@2 ~ ~
+  bb1@2 ~ c2@3 ~ ~
+`).slow(4)
+
+
+// 2. SON ACID
+// Attaque très courte, résonance et enveloppe de filtre.
+// Le filtre s'ouvre à chaque note, puis se referme.
+
+const acidSound = p => p
+  .s("sawtooth")
+  .attack(0.005)
+  .decay(0.16)
+  .sustain(0.15)
+  .release(0.08)
+  .lpq(7)
+  .lpa(0.005)
+  .lpd(0.16)
+  .lps(0)
+  .lpenv(3)
+  .distort("1.3:.35")
+  .gain("0.38 0.25 0.32 0.27")
+
+
+// 3. ARRANGEMENT
+// Contrairement à un simple LFO, les sections changent
+// aussi les notes, le registre, les silences et l'énergie.
+
+$: arrange(
+
+  // MESURES 1–8 : exposition, sombre et retenue.
+  [8, acidSound(
+    cat(acidA, acidDown)
+  )
+    .lpf(220)
+    .lpenv(2)
+  ],
+
+  // MESURES 9–16 : montée mélodique + ouverture du filtre.
+  [8, acidSound(
+    cat(acidA, acidUp)
+  )
+    .lpf(saw.slow(8).range(250, 1500))
+    .lpenv(4)
+  ],
+
+  // MESURES 17–24 : sommet, appel aigu / réponse grave.
+  [8, acidSound(
+    cat(acidUp, acidDown)
+  )
+    .lpf(1100)
+    .lpenv(4)
+    .lpd(0.22)
+  ],
+
+  // MESURES 25–28 : descente et fermeture du filtre.
+  [4, acidSound(acidDown)
+    .lpf(saw.slow(4).range(1200, 180))
+    .lpenv(2)
+  ],
+
+  // MESURES 29–32 : respiration avant le retour.
+  [4, acidSound(acidAir)
+    .lpf(180)
+    .lpenv(1)
+    .gain(0.25)
+  ]
+
+)
