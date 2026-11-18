@@ -1,0 +1,108 @@
+await initHydra()
+
+function loadScript(src) {
+  return new Promise((ok, ko) => {
+    const s = document.createElement('script')
+    s.src = src; s.onload = ok; s.onerror = ko
+    document.head.appendChild(s)
+  })
+}
+await loadScript('https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js')
+
+if (window._p5smile) window._p5smile.remove()
+if (window._label) window._label.remove()   // nettoie l'ancien div HTML
+
+// ===== RYTHME (le smiley pulse sur ça) =====
+const K = "1 0 1 0 1 0 1 0"
+const S = "0 0 1 0 0 0 1 0"
+const kP = H(K)
+const sP = H(S)
+
+// ===== INSTRUMENTS =====
+const kick  = s("bd").struct(K)
+const snare = s("sd:0").struct(S)
+const roll  = s("sd:0*8").gain(saw.range(.2, 1).slow(8))
+const hats  = s("hh*8").gain(.4)
+const open  = s("~ oh ~ oh ~ oh ~ oh").gain(.35)
+const pad   = note("<c3 eb3 g3 bb3>").s("supersaw").lpf(1200).gain(.35).slow(2).room(.6)
+const line  = note("c1 ~ c1 eb1 ~ c1 g1 ~").s("sawtooth").gain(.8)
+
+// ===== SECTIONS = stacks =====
+const sections = {
+  intro: stack(hats, pad, line.lpf(250)),
+  build: stack(kick, roll, hats, line.lpf(sine.range(250, 1500).slow(8))),
+  drop:  stack(kick, snare, hats, open, line.lpf(900).lpq(6).distort(.3)),
+  break: stack(pad, line.lpf(250)),
+  outro: stack(kick, hats, pad)
+}
+
+// ===== PLAN : une seule source pour le son ET le texte =====
+const plan = [
+  [8,  'intro'],
+  [8,  'build'],
+  [16, 'drop'],
+  [8,  'break'],
+  [16, 'drop'],
+  [8,  'outro']
+]
+const labelP = H(arrange(...plan.map(([n, name]) => [n, pure(name)])))
+
+// ===== IMAGE (smiley) =====
+const api = 'https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*'
+  + '&prop=imageinfo&iiprop=url&iiurlwidth=256&titles=File:Smiley.svg'
+const j = await (await fetch(api)).json()
+const IMG_URL = Object.values(j.query.pages)[0].imageinfo[0].thumburl
+
+// ===== FOND GIF ANIMÉ =====
+const BG_URL = 'https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExaGt0bm9xMHN4eTg5aTFqODBqaGZ6M2llY3BwcmxybXloMjdyeHN2OSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/fw3aNWFd70uafr7EMB/giphy.gif'
+
+// ===== SKETCH =====
+window._p5smile = new p5((p) => {
+  let img, bg
+  let size = 100
+  let wasHit = false
+
+  p.setup = () => {
+    p.createCanvas(800, 600)
+    p.imageMode(p.CENTER)
+    p.textAlign(p.CENTER, p.CENTER)
+    p.textStyle(p.BOLD)
+    p.textSize(96)
+    p.background(200, 10, 100)
+    img = p.loadImage(IMG_URL)
+    bg  = p.loadImage(BG_URL, g => g.play && g.play())
+    s0.init({ src: p.canvas, dynamic: true })
+  }
+
+  p.draw = () => {
+    if (bg && bg.width > 1) {
+      p.image(bg, p.width / 2, p.height / 2, p.width, p.height)
+    } else {
+      p.background(200, 10, 100, 40)
+    }
+
+    const hit = kP() || sP()
+    if (hit && !wasHit) size = 140
+    wasHit = hit
+    size = p.lerp(size, 100, 0.1)
+
+    const x = p.map(p.winMouseX, 0, p.windowWidth, 0, p.width)
+    const y = p.map(p.winMouseY, 0, p.windowHeight, 0, p.height)
+    p.image(img, x, y, size, size)
+
+    // texte FIXE au centre, par-dessus le smiley
+    p.fill(255)
+    p.stroke(0)
+    p.strokeWeight(6)
+    p.text(String(labelP() || '').toUpperCase(), p.width / 2, p.height / 2)
+    p.noStroke()
+  }
+})
+
+// ===== HYDRA =====
+src(s0).out(o0)
+
+// ===== SON =====
+setcps(135/60/4)
+
+$: arrange(...plan.map(([n, name]) => [n, sections[name]]))
