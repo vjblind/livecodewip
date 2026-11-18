@@ -1,0 +1,62 @@
+await initHydra()
+
+function loadScript(src) {
+  return new Promise((ok, ko) => {
+    const s = document.createElement('script')
+    s.src = src; s.onload = ok; s.onerror = ko
+    document.head.appendChild(s)
+  })
+}
+await loadScript('https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js')
+
+if (window._p5smile) window._p5smile.remove()
+
+// ===== RYTHME =====
+const K = "1 0 1 0 1 0 1 0"
+const S = "0 0 1 0 0 0 1 0"
+const kP = H(K)
+const sP = H(S)
+
+// ===== IMAGE (URL via l'API Commons) =====
+const api = 'https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*'
+  + '&prop=imageinfo&iiprop=url&iiurlwidth=256&titles=File:Smiley.svg'
+const j = await (await fetch(api)).json()
+const IMG_URL = Object.values(j.query.pages)[0].imageinfo[0].thumburl
+console.log('smiley url:', IMG_URL)
+
+// ===== SKETCH =====
+window._p5smile = new p5((p) => {
+  let img
+  let size = 100
+  let wasHit = false
+
+  p.setup = () => {
+    p.createCanvas(800, 600)
+    p.imageMode(p.CENTER)
+    p.background(200, 10, 100)
+    img = p.loadImage(IMG_URL)
+    s0.init({ src: p.canvas })
+  }
+
+  p.draw = () => {
+    p.background(200, 10, 100, 40)
+
+    const hit = kP() || sP()
+    if (hit && !wasHit) size = 140   // petit coup de grossissement
+    wasHit = hit
+    size = p.lerp(size, 100, 0.1)    // retour doux à 100
+
+    // souris sur toute la fenêtre -> coordonnées du canvas
+    const x = p.map(p.winMouseX, 0, p.windowWidth, 0, p.width)
+    const y = p.map(p.winMouseY, 0, p.windowHeight, 0, p.height)
+    p.image(img, x, y, size, size)
+  }
+})
+
+// ===== HYDRA =====
+src(o0).kaleid(2).scale(1.004).blend(src(s0), .5).out(o0)
+
+// ===== SON =====
+setcps(135/60/4)
+$: s("bd").struct(K)
+$: s("sd:0").struct(S)
