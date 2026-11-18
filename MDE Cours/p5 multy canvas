@@ -1,0 +1,260 @@
+await initHydra()
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector('script[src="' + src + '"]')) { resolve(); return; }
+    var s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+if (!window.p5) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js')
+
+if (window._p5smile) window._p5smile.remove()
+if (window._p5flash) window._p5flash.remove()
+if (window._p5text)  window._p5text.remove()
+if (window._label)   window._label.remove()
+if (window._fxLoop)  clearInterval(window._fxLoop)
+
+// ===== RYTHME PARTAGÉ : son + visuels =====
+const K = "1 0 1 0 1 0 1 0"   // kick on the beat
+const B = "0 1 0 1 0 1 0 1"   // kick off-beat
+const S = "0 0 1 0 0 0 1 0"   // snare
+const kP = H(K)
+const bP = H(B)
+const sP = H(S)
+
+const PAL_K = [[0, 195, 255], [255, 0, 128], [0, 255, 180]]
+const PAL_B = [[255, 200, 0], [255, 90, 0]]
+const PAL_S = [[255, 255, 255]]
+
+// ===== INSTRUMENTS =====
+const kick  = s("bd").struct(K)
+const kickB = s("bd:3").struct(B).gain(.7).lpf(1200)
+const snare = s("sd:0").struct(S)
+const roll  = s("sd:0*8").gain(saw.range(.2, 1).slow(8))
+const hats  = s("hh*8").gain(.04)
+const open  = s("~ oh ~ oh ~ oh ~ oh").gain(.35)
+const pad   = note("<c3 eb3 g3 bb3>").s("supersaw").lpf(1200).gain(.35).slow(2).room(.6)
+const line  = note("c1 ~ c1 eb1 ~ c1 g1 ~").s("sawtooth").gain(.8)
+
+// ===== SECTIONS = stacks =====
+const sections = {
+  intro: stack(hats, pad, line.lpf(250)),
+  build: stack(kick, roll, hats, line.lpf(sine.range(250, 1500).slow(8))),
+  drop:  stack(kick, kickB, snare, hats, open, line.lpf(900).lpq(6).distort(.3)),
+  break: stack(pad, line.lpf(250)),
+  outro: stack(kick, hats, pad)
+}
+
+// ===== PLAN : une seule source pour le son ET le texte =====
+const plan = [
+  [8,  'intro'],
+  [8,  'build'],
+  [16, 'drop'],
+  [8,  'break'],
+  [16, 'drop'],
+  [8,  'outro']
+]
+const labelP = H(arrange(...plan.map(([n, name]) => [n, pure(name)])))
+
+// ===== 10 FONDS (change les liens toi-même) =====
+const BG = 'https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExaGt0bm9xMHN4eTg5aTFqODBqaGZ6M2llY3BwcmxybXloMjdyeHN2OSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/fw3aNWFd70uafr7EMB/giphy.gif'
+const BG1 =  'https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExaHk5ZmtxN3hzeTY0OW4wc2xtZWVpcmtwZjY4YnJ5eW50cnE0cDQxZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/WsF32JfAJyyUjUTTy2/giphy.gif'
+const BG2 =  'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExdHc1aTJjZHJzM2wwZHZkYXB0bzljbjNxaGNpOXM3OHZvZm5oMXI3YSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/TtFIMantyMKeA/giphy.gif'
+const BG3 =  'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExdHc1aTJjZHJzM2wwZHZkYXB0bzljbjNxaGNpOXM3OHZvZm5oMXI3YSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/TtFIMantyMKeA/giphy.gif'
+
+const BACKGROUNDS = [
+  BG1, // 0
+  BG1, // 1
+  BG2, // 2
+  BG3, // 3
+  BG,  // 4
+  BG,  // 5
+  BG,  // 6
+  BG,  // 7
+  BG,  // 8
+  BG   // 9
+]
+
+// ===== PLAN DES FONDS : [cycles, index dans BACKGROUNDS] =====
+const bgPlan = [
+  [8,  0],
+  [8,  1],
+  [16, 2],
+  [8,  3],
+  [16, 4],
+  [8,  5]
+]
+const bgP = H(arrange(...bgPlan.map(([n, i]) => [n, pure(i)])))
+
+// ===== 5 EFFETS HYDRA =====
+// s0 = fond + smiley | s1 = flash + particules | s2 = texte
+const scene = () => src(s0).add(src(s1), .8)
+const txt   = () => src(s2)
+
+const FX = [
+  // 0 : propre
+  () => scene().add(txt(), 1).out(o0),
+
+  // 1 : kaleid + feedback (texte reste net)
+  () => src(o0).kaleid(2).scale(1.004).blend(scene(), .5).add(txt(), 1).out(o0),
+
+  // 2 : couleurs qui tournent
+  () => scene().hue(() => time * .1).saturate(2).contrast(1.2).add(txt(), 1).out(o0),
+
+  // 3 : pixel + distorsion bruit
+  () => scene().pixelate(60, 40).modulate(noise(3, .1), .02).add(txt(), 1).out(o0),
+
+  // 4 : modulation osc + feedback rotatif
+  () => scene().modulateScale(osc(6, .1), -.3)
+          .blend(src(o0).scale(1.01).rotate(.01), .3).add(txt(), 1).out(o0)
+]
+
+// ===== PLAN DES EFFETS : [cycles, index dans FX] =====
+const fxPlan = [
+  [8,  0],
+  [8,  1],
+  [16, 2],
+  [8,  3],
+  [16, 4],
+  [8,  0]
+]
+const fxP = H(arrange(...fxPlan.map(([n, i]) => [n, pure(i)])))
+
+// ===== IMAGE (smiley, mise en cache) =====
+if (!window._smileUrl) {
+  const api = 'https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*'
+    + '&prop=imageinfo&iiprop=url&iiurlwidth=256&titles=File:Smiley.svg'
+  const j = await (await fetch(api)).json()
+  window._smileUrl = Object.values(j.query.pages)[0].imageinfo[0].thumburl
+}
+const IMG_URL = window._smileUrl
+window._imgCache = window._imgCache || {}
+
+// ===== CANVAS 1 (s0) : fond GIF + smiley =====
+const sketchSmile = (p) => {
+  let img
+  let bgs = []
+  let size = 100
+  let wasHit = false
+
+  p.setup = () => {
+    p.createCanvas(800, 600)
+    p.imageMode(p.CENTER)
+    p.background(200, 10, 100)
+    const load = (u, cb) => window._imgCache[u] || (window._imgCache[u] = p.loadImage(u, cb))
+    img = load(IMG_URL)
+    bgs = BACKGROUNDS.map(u => load(u, g => g.play && g.play()))
+    s0.init({ src: p.canvas, dynamic: true })
+  }
+
+  p.draw = () => {
+    const idx = Number(bgP()) || 0
+    const bg = bgs[idx % bgs.length]
+    if (bg && bg.width > 1) p.image(bg, p.width / 2, p.height / 2, p.width, p.height)
+    else p.background(200, 10, 100, 40)
+
+    const hit = kP() || sP()
+    if (hit && !wasHit) size = 140
+    wasHit = hit
+    size = p.lerp(size, 100, 0.1)
+
+    const x = p.map(p.winMouseX, 0, p.windowWidth, 0, p.width)
+    const y = p.map(p.winMouseY, 0, p.windowHeight, 0, p.height)
+    p.image(img, x, y, size, size)
+  }
+}
+
+// ===== CANVAS 2 (s1) : flash + particules =====
+const sketchFlash = (p) => {
+  let flash = 0
+  let last = { k: 0, b: 0, s: 0 }
+  let particles = []
+
+  const spawn = (n, pal, vmin, vmax, smin, smax) => {
+    for (let i = 0; i < n; i++) {
+      const a = p.random(p.TWO_PI)
+      const v = p.random(vmin, vmax)
+      particles.push({
+        x: p.width / 2 + p.random(-20, 20),
+        y: p.height / 2 + p.random(-20, 20),
+        vx: p.cos(a) * v, vy: p.sin(a) * v,
+        life: 1, size: p.random(smin, smax),
+        c: pal[Math.floor(p.random(pal.length))]
+      })
+    }
+    if (particles.length > 400) particles.splice(0, particles.length - 400)
+  }
+
+  const edge = (key, val) => {
+    const hit = val && !last[key]
+    last[key] = val
+    return hit
+  }
+
+  p.setup = () => {
+    p.createCanvas(800, 600)
+    s1.init({ src: p.canvas, dynamic: true })
+  }
+
+  p.draw = () => {
+    if (edge('k', kP() ? 1 : 0)) { flash = 150; spawn(Math.floor(p.random(10, 20)), PAL_K, 2, 8, 3, 9) }
+    if (edge('b', bP() ? 1 : 0)) { flash = Math.max(flash, 90); spawn(Math.floor(p.random(6, 12)), PAL_B, 3, 11, 2, 6) }
+    if (edge('s', sP() ? 1 : 0)) { spawn(Math.floor(p.random(4, 8)), PAL_S, 4, 12, 2, 5) }
+
+    flash = p.lerp(flash, 0, 0.1)
+    p.background(0, flash * .5, flash * .65)
+
+    p.blendMode(p.ADD)
+    p.noStroke()
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const q = particles[i]
+      q.x += q.vx; q.y += q.vy
+      q.vx *= .96; q.vy = q.vy * .96 + .06
+      q.life -= .012
+      if (q.life <= 0) { particles.splice(i, 1); continue }
+      p.fill(q.c[0], q.c[1], q.c[2], 255 * q.life)
+      p.ellipse(q.x, q.y, q.size * q.life)
+    }
+    p.blendMode(p.BLEND)
+
+    p.fill(0, 195, 255, flash * .6)
+    p.ellipse(p.width / 2, p.height / 2, 200 + flash)
+  }
+}
+
+// ===== CANVAS 3 (s2) : texte de section =====
+const sketchText = (p) => {
+  p.setup = () => {
+    p.createCanvas(800, 600)
+    p.textAlign(p.CENTER, p.CENTER)
+    p.textStyle(p.BOLD)
+    p.textSize(96)
+    s2.init({ src: p.canvas, dynamic: true })
+  }
+  p.draw = () => {
+    p.background(0)
+    p.fill(255)
+    p.stroke(0)
+    p.strokeWeight(6)
+    p.text(String(labelP() || '').toUpperCase(), p.width / 2, p.height / 2)
+  }
+}
+
+window._p5smile = new p5(sketchSmile)
+window._p5flash = new p5(sketchFlash)
+window._p5text  = new p5(sketchText)
+
+// ===== HYDRA : change d'effet selon fxPlan =====
+let lastFx = -1
+FX[0]()
+window._fxLoop = setInterval(() => {
+  const i = (Number(fxP()) || 0) % FX.length
+  if (i !== lastFx) { lastFx = i; FX[i]() }
+}, 50)
+
+// ===== SON =====
+setcps(135/60/4)
+
+$: arrange(...plan.map(([n, name]) => [n, sections[name]]))
