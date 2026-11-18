@@ -1,0 +1,71 @@
+await initHydra()
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector('script[src="' + src + '"]')) { resolve(); return; }
+    var s = document.createElement('script');
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+await loadScript('https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js');
+
+if (window._p5flash) { window._p5flash.remove(); }
+if (window._p5text) { window._p5text.remove(); }
+
+// ===== SHARED RHYTHM: edit here, sound + visuals follow =====
+const K = "1 0 1 0 1 1 1 0".shuffle(2)   // kick on the beat
+const S = "0 0 1 0 0 0 1 0"   // snare
+const kP = H(K)
+const sP = H(S)
+
+const sketchShapes = (p) => {
+  const BASE = 100      // taille au repos
+  const HIT  = 200      // taille au kick / snare
+  let sq = BASE
+  let el = BASE
+  let last = { k: 0, s: 0 }
+
+  const edge = (key, val) => {
+    const hit = val && !last[key]
+    last[key] = val
+    return hit
+  }
+
+  p.setup = () => {
+    p.createCanvas(800, 600)
+    p.rectMode(p.CENTER)
+    s0.init({ src: p.canvas, dynamic: true })
+  }
+
+  p.draw = () => {
+    p.background(0)
+
+    if (edge('k', kP() ? 1 : 0)) sq = HIT   // kick -> carré grossit
+    if (edge('s', sP() ? 1 : 0)) el = HIT   // snare -> ellipse grossit
+
+    sq = p.lerp(sq, BASE, 0.15)             // retrouve sa taille
+    el = p.lerp(el, BASE, 0.15)
+
+    p.noStroke()
+    p.fill(0, 195, 255)
+    p.rect(p.width / 2 - 150, p.height / 2, sq, sq)
+
+    p.fill(255)
+    p.ellipse(p.width / 2 + 150, p.height / 2, el * 1.6, el)
+  }
+}
+
+window._p5flash = new p5(sketchShapes)
+
+// ===== HYDRA =====
+src(s0).out(o0)
+
+// ===== SOUND =====
+setcps(135/60/4)
+$: s("bd").struct(K)
+$: s("sd:0").struct(S)
+$: note("c1 ~ c1 eb1 ~ c1 g1 ~").s("sawtooth").lpf(400).gain(.8)
